@@ -25,53 +25,53 @@ class CrawlBlogData extends Command
 
     public function handle()
     {
-        // $crawler = GoutteFacade::request('GET', 'https://langngheviet.com.vn/ocop');
-        // $linkPost = $crawler->filter('h3.article-title a')->each(function ($node) {
-        //     return $node->attr("href");
-        // });
-        // $filterDiv = $crawler->filter('div.__MB_ARTICLE_PAGING');
-        // $filterLinks = $filterDiv->filter('a');
-
-        // $nextLink = $crawler->filter('div.__MB_ARTICLE_PAGING a')->eq(1);
-        // $previousLink = $filterLinks->eq(0)->attr('href');
-        // if ($nextLink->count() >0 ) {
-        //     $nextLink = $filterLinks->eq(1)->attr('href');
-        //     dd($nextLink);
-        // }
-        // dd($linkPost);
-        $pageUrl = 'https://langngheviet.com.vn/ocop';
+        $pageUrl = 'https://ekeinterior.com/blog-noi-that';
         do {
             $crawler = GoutteFacade::request('GET', $pageUrl);
-            $linkPost = $crawler->filter('h3.article-title a');
+            // crawl
+            $linkPost = $crawler->filter('div.boxed');
             $linkPost->each(function ($node) {
-                $link = $node->attr('href');
-                $this->scrapeData($link);
+                          // summary 
+                $summary  = ($node->filter('div.content p')->text());
+                // image blog 
+                $imagee = $node->filter('.blog-grid.grid-2 img');
+                if ($imagee->count() > 0) {
+                    $iamgeblog = $imagee->attr('data-lazy-src');
+                }
+                 // href blog
+                 $links = $node->filter('div.content a');
+                $linkHref = $links->attr('href');
+                $this->scrapeData($linkHref, $iamgeblog,$summary);
             });
-            $nextLink = $crawler->filter('div.__MB_ARTICLE_PAGING a:contains("Sau")')->first();
-
+        
+            $nextLink = $crawler->filter('nav.pagination li a.next')->first();
             if ($nextLink->count() > 0) {
                 $nextPageUrl = $nextLink->attr('href');
             } else {
-                echo "Next link not found.";
+                // No "Next" link found, exit the loop
+                break;
             }
             // Update the pageUrl for the next iteration
             $pageUrl = $nextPageUrl;
-        } while ($nextPageUrl !== '');
+       
+        } while ($pageUrl !== '');
+    
     }
-    public function scrapeData($url)
+    public function scrapeData($url, $image,   $summary)
     {
+   
         $crawler = GoutteFacade::request('GET', $url);
-
-        $title = $this->crawlData('h1.article-detail-title', $crawler);
-
-        $content = $this->crawlData('div.__MASTERCMS_CONTENT', $crawler);
-
+        $title = $this->crawlData('h1.page-title', $crawler);
+        $content = $this->crawlData('#main', $crawler);
         $check = Blog_data::all();
         if (sizeof($check) <= 0) {
             $dataPost = [
-                'title' => $title,
-                'content' => $content,
-                'source' => '',
+                'tieuDe' => $title,
+                'noiDung' => $content,
+                "urlHinh" =>  $image,
+                "ngayDang" => now(),
+                'tomTat' => $summary,
+                "idLT" => 3,
                 'SimilarityPercentage' => 0.0
             ];
             // echo "Similarity Percentage: " . round($similarityPercentage, 2) . "%";
@@ -79,9 +79,10 @@ class CrawlBlogData extends Command
         } else {
             $check_tile = false;
             $similarityPercentage = 0.0;
+       
             foreach ($check as  $blog) {
-                if ($blog->title != $title) {
-                    $blog1Words = explode(' ', $blog->content);
+                if ($blog->tieuDe !== $title) {
+                    $blog1Words = explode(' ', $blog->noiDung);
                     $blog2Words = explode(' ', $content);
                     $commonWords = array_intersect($blog1Words, $blog2Words);
                     $similarityPercentage += count($commonWords) / count($blog1Words);
@@ -92,9 +93,12 @@ class CrawlBlogData extends Command
             if ($check_tile == false && $title != null) {
                 $similarityPercentage = $similarityPercentage / sizeof($check);
                 $dataPost = [
-                    'title' => $title,
-                    'content' => $content,
-                    'source' => '',
+                    'tieuDe' => $title,
+                    'noiDung' => $content,
+                    "urlHinh" => $image,
+                    "ngayDang" => now(),
+                    'tomTat' => $summary,
+                    "idLT" => 3,
                     'SimilarityPercentage' => round($similarityPercentage, 2)
                 ];
                 Blog_data::create($dataPost);

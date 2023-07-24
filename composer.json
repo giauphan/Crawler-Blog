@@ -1,9 +1,15 @@
 {
-    "name": "laravel/laravel",
+    "name": "giauphan/crawlerblog",
     "type": "project",
-    "description": "The Laravel Framework.",
+    "description": "Comprehensive Web Scraping: Our crawler boasts an intelligent and efficient web scraping mechanism, allowing you to extract data from blogs, e-commerce websites, and product listings with ease. Obtain critical information such as blog posts, product descriptions, prices, customer reviews, and much more in real-time.",
     "keywords": ["framework", "laravel"],
     "license": "MIT",
+    "authors": [
+        {
+            "name": "Giau Phan",
+            "email": "giauphan012@gmail.com"
+        }
+    ],
     "require": {
         "php": "^8.1",
     
@@ -64,6 +70,6 @@
             "php-http/discovery": true
         }
     },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "prefer-stable": true
 }

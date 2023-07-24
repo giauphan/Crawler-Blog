@@ -8,10 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 class Blog_data extends Model
 {
     use HasFactory;
-    protected $table = 'BlogData';
+    protected $table = 'blogdata';
     protected $fillable = [
-        'title',
-        'content',
+        'tieuDe',
+        'noiDung',
+        'ngayDang',
+        'idLT',
+        "tomTat",
+        "urlHinh",
         'source',
         'SimilarityPercentage',
     ];
