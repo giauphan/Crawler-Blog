@@ -20,10 +20,7 @@ Follow these steps to get the Crawler Blog for Laravel up and running:
 
 Clone the repository:
 
-bash
-```
-composer require giauphan/Crawler-Blog
-```
+
 Usage
 Setting Up Crawler Parameters: Modify the crawler settings in the 
 ``
