@@ -15,35 +15,34 @@ class CrawlBlogData extends Command
      * @var string
      */
     protected $signature = 'app:crawl';
-
     /**
      * The console command description.
      *
      * @var string
      */
     protected $description = 'Command description';
-
     public function handle()
     {
-        $pageUrl = 'https://ekeinterior.com/blog-noi-that';
+        $pageUrl = 'https://doanhnghiepmoithanhlap.com/huong-dan/so-seri-token-i-ca/';
         do {
             $crawler = GoutteFacade::request('GET', $pageUrl);
             // crawl
-            $linkPost = $crawler->filter('div.boxed');
+            $linkPost = $crawler->filter('.latestPost.excerpt');
             $linkPost->each(function ($node) {
                           // summary 
-                $summary  = ($node->filter('div.content p')->text());
+                $summary  = ($node->filter('h2.title.front-view-title')->text());
                 // image blog 
-                $imagee = $node->filter('.blog-grid.grid-2 img');
+                $imagee = $node->filter('img.attachment-lawyer-featured.size-lawyer-featured.wp-post-image');
                 if ($imagee->count() > 0) {
-                    $iamgeblog = $imagee->attr('data-lazy-src');
+                    $iamgeblog = $imagee->attr('src');
                 }
                  // href blog
-                 $links = $node->filter('div.content a');
+                 $links = $node->filter('.latestPost.excerpt a');
                 $linkHref = $links->attr('href');
+                // dd($linkHref,$summary);
                 $this->scrapeData($linkHref, $iamgeblog,$summary);
             });
-        
+                 
             $nextLink = $crawler->filter('nav.pagination li a.next')->first();
             if ($nextLink->count() > 0) {
                 $nextPageUrl = $nextLink->attr('href');
@@ -55,14 +54,14 @@ class CrawlBlogData extends Command
             $pageUrl = $nextPageUrl;
        
         } while ($pageUrl !== '');
-    
+        // $this->scrapeData($pageUrl);
     }
-    public function scrapeData($url, $image,   $summary)
+    public function scrapeData($url, $image = 'sdsd' ,   $summary = 'sdsd')
     {
    
         $crawler = GoutteFacade::request('GET', $url);
-        $title = $this->crawlData('h1.page-title', $crawler);
-        $content = $this->crawlData('#main', $crawler);
+        $title = $this->crawlData('h1.title.single-title.entry-title', $crawler);
+        $content = $this->crawlData('div.post-single-content.box.mark-links.entry-content', $crawler);
         $check = Blog_data::all();
         if (sizeof($check) <= 0) {
             $dataPost = [
@@ -109,7 +108,7 @@ class CrawlBlogData extends Command
     protected function crawlData(string $type, $crawler)
     {
         $result = $crawler->filter($type)->each(function ($node) {
-            return $node->html();
+            return $node->text();
         });
 
         if (!empty($result)) {
